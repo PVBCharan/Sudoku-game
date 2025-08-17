@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Basic Sudoku Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 30px;
+    }
+    #sudoku-board {
+      display: grid;
+      grid-template-columns: repeat(9, 40px);
+      gap: 2px;
+      margin: 0 auto;
+      width: fit-content;
+    }
+    .cell {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      font-size: 18px;
+      border: 1px solid #ccc;
+    }
+    .prefilled {
+      background-color: #eee;
+      font-weight: bold;
+    }
+    .cell:focus {
+      outline: 2px solid #4CAF50;
+    }
+    .bold-border {
+      border-width: 2px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Basic Sudoku Game</h1>
+  <div id="sudoku-board"></div>
+  <button onclick="checkSolution()">Check Solution</button>
+  <div id="message"></div>
+
+  <script>
+    const puzzle = [
+      [5, 3, null, null, 7, null, null, null, null],
+      [6, null, null, 1, 9, 5, null, null, null],
+      [null, 9, 8, null, null, null, null, 6, null],
+      [8, null, null, null, 6, null, null, null, 3],
+      [4, null, null, 8, null, 3, null, null, 1],
+      [7, null, null, null, 2, null, null, null, 6],
+      [null, 6, null, null, null, null, 2, 8, null],
+      [null, null, null, 4, 1, 9, null, null, 5],
+      [null, null, null, null, 8, null, null, 7, 9]
+    ];
+
+    const boardElement = document.getElementById('sudoku-board');
+
+    function createBoard() {
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          const input = document.createElement('input');
+          input.setAttribute('maxlength', 1);
+          input.setAttribute('data-row', row);
+          input.setAttribute('data-col', col);
+          input.classList.add('cell');
+
+          if (puzzle[row][col]) {
+            input.value = puzzle[row][col];
+            input.disabled = true;
+            input.classList.add('prefilled');
+          }
+
+          // Add bold borders for 3x3 boxes
+          if (col % 3 === 0) input.style.borderLeft = '2px solid black';
+          if (col === 8) input.style.borderRight = '2px solid black';
+          if (row % 3 === 0) input.style.borderTop = '2px solid black';
+          if (row === 8) input.style.borderBottom = '2px solid black';
+
+          boardElement.appendChild(input);
+        }
+      }
+    }
+
+    function getBoardState() {
+      const inputs = document.querySelectorAll('.cell');
+      const board = Array.from({ length: 9 }, () => Array(9).fill(null));
+      inputs.forEach(input => {
+        const row = parseInt(input.dataset.row);
+        const col = parseInt(input.dataset.col);
+        const value = input.value;
+        board[row][col] = value ? parseInt(value) : null;
+      });
+      return board;
+    }
+
+    function isValid(board) {
+      // Check rows and columns
+      for (let i = 0; i < 9; i++) {
+        const rowSet = new Set();
+        const colSet = new Set();
+        for (let j = 0; j < 9; j++) {
+          // Row
+          const r = board[i][j];
+          if (r) {
+            if (rowSet.has(r)) return false;
+            rowSet.add(r);
+          }
+          // Column
+          const c = board[j][i];
+          if (c) {
+            if (colSet.has(c)) return false;
+            colSet.add(c);
+          }
+        }
+      }
+
+      // Check 3x3 boxes
+      for (let boxRow = 0; boxRow < 3; boxRow++) {
+        for (let boxCol = 0; boxCol < 3; boxCol++) {
+          const boxSet = new Set();
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              const val = board[boxRow * 3 + i][boxCol * 3 + j];
+              if (val) {
+                if (boxSet.has(val)) return false;
+                boxSet.add(val);
+              }
+            }
+          }
+        }
+      }
+
+      return true;
+    }
+
+    function checkSolution() {
+      const board = getBoardState();
+      const filled = board.every(row => row.every(cell => cell !== null));
+      const valid = isValid(board);
+
+      const message = document.getElementById('message');
+      if (!filled) {
+        message.textContent = 'Please fill in all cells!';
+        message.style.color = 'orange';
+      } else if (!valid) {
+        message.textContent = 'Incorrect solution. Try again!';
+        message.style.color = 'red';
+      } else {
+        message.textContent = 'Congratulations! You solved it!';
+        message.style.color = 'green';
+      }
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>
